@@ -1,0 +1,4 @@
+# ignoring all cvs and html files
+*.csv 
+*.html 
+*.htm 
