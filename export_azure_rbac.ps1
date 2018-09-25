@@ -95,7 +95,8 @@ else {
               }
             }
             #Export the Role Assignments to a CSV file labeled by the subscription name
-            $Current | Export-CSV ".\Subscription--$SubName-Roles.csv" -Delimiter ';'
+            $csvSubName = $SubName.replace("/","---")
+            $Current | Export-CSV ".\Subscription--$csvSubName-Roles.csv" -Delimiter ';'
         }
     }
 
