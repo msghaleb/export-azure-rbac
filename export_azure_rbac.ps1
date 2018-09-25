@@ -61,6 +61,20 @@ else {
     Login
 }
 
+#Setting the current date and time for folder creating
+$currentDate = $((Get-Date).ToString('yyyy-MM-dd--hh-mm'))
+
+#creating a sub folder for the output.
+Write-Host "Creating a Sub Folder for the output files"
+Try {
+    New-Item -ItemType Directory -Path ".\$currentDate"  | Out-Null
+    # setting the path
+    $outputPath = ".\$currentDate"
+} 
+Catch {
+    Write-Output "Failed to create the output folder, please check your permissions"
+}
+
 # Export Role Assignments for all subscriptions the user has access to
 
     $RoleAssignments = @()
@@ -75,7 +89,7 @@ else {
                 #############################################################################################################################
                 #### Modify this line to filter what you want in your results, currently only Owners or Admins will be expoted.
                 #############################################################################################################################
-                $Current = Get-AzureRmRoleAssignment -IncludeClassicAdministrators | Where-Object {$_.RoleDefinitionName -like "*AccountAdministrator*" -or $_.RoleDefinitionName -like "owner" -or $_.RoleDefinitionName -like "*ServiceAdministrator*"}
+                $Current = Get-AzureRmRoleAssignment -IncludeClassicAdministrators | Where-Object {$_.RoleDefinitionName -like "*AccountAdministrator*" -or $_.RoleDefinitionName -like "owner" -or $_.RoleDefinitionName -like "*ServiceAdministrator*"} | Select-Object -Property @{Name = 'SubscriptionName'; Expression = {$sub.name}}, @{Name = 'SubscriptionID'; Expression = {$sub.id}}, DisplayName, SignInName, RoleDefinitionName, RoleDefinitionId, ObjectId, ObjectType, CanDelegate
                 $RoleAssignments += $Current
             } 
             Catch {
@@ -83,6 +97,7 @@ else {
             }
             
             #Custom Roles do not display their Name in these results. We are forcing this behavior for improved reporting
+            #As this is only exporting Owners and Admins there will be no custom roles, however just in case you modified the above part
             Foreach ($role in $RoleAssignments) {
               $ObjectId = $role.ObjectId
               $DisplayName = $role.DisplayName
@@ -91,17 +106,17 @@ else {
               }
               if ($role.ObjectType -eq "Group" -and !(Test-Path -path "GroupMembers--$DisplayName.csv")) {
                 $Members = Get-AzureADGroupMember -ObjectId $ObjectId
-                $Members | Export-CSV ".\GroupMembers--$DisplayName.csv" -Delimiter ';'
+                $Members | Export-CSV "$outputPath\GroupMembers--$DisplayName.csv" -Delimiter ';'
               }
             }
             #Export the Role Assignments to a CSV file labeled by the subscription name
             $csvSubName = $SubName.replace("/","---")
-            $Current | Export-CSV ".\Subscription--$csvSubName-Roles.csv" -Delimiter ';'
+            $Current | Export-CSV "$outputPath\Subscription--$csvSubName-Roles.csv" -Delimiter ';'
         }
     }
 
     #Export All Role Assignments in to a single CSV file
-    $RoleAssignments | Export-CSV ".\Subscription--All-Roles.csv" -Delimiter ';'
+    $RoleAssignments | Export-CSV "$outputPath\Subscription--All-Roles.csv" -Delimiter ';'
 
     # HTML report
     $a = "<style>"
@@ -109,4 +124,4 @@ else {
     $a = $a + "TH{border-width: 1px;padding: 5px;border-style: solid;border-color: black;}"
     $a = $a + "TD{border-width: 1px;padding: 5px;border-style: solid;border-color: black;}"
     $a = $a + "</style>"
-    $RoleAssignments | ConvertTo-Html -Head $a| Out-file ".\RoleAssignments1.html"
+    $RoleAssignments | ConvertTo-Html -Head $a| Out-file "$outputPath\OwnersAdmins.html"
