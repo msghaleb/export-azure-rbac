@@ -1,4 +1,4 @@
-# Export all (or some) of your Azure RBAC rules 
+# Export all (or some) of your Azure RBAC rules (also Account Adminitsrator and Service Administrator) 
 This Script will export the Owners and the Service Admins for all subscriptions user has access to
 Each Subscription will have a seperate CSV file 
 > Subscription--{Subscription Name}.csv
