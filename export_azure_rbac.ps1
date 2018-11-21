@@ -75,6 +75,28 @@ Catch {
     Write-Output "Failed to create the output folder, please check your permissions"
 }
 
+#creating a sub folder for the groups.
+Write-Host "Creating a Sub Folder for the groups output files"
+Try {
+    New-Item -ItemType Directory -Path ".\$currentDate\groups"  | Out-Null
+    # setting the path
+    $groupsPath = ".\$currentDate\groups"
+} 
+Catch {
+    Write-Output "Failed to create the groups sub folder, please check your permissions"
+}
+
+#creating a sub folder for the subscriptions one by one.
+Write-Host "Creating a Sub Folder for the subscriptions one by one output files"
+Try {
+    New-Item -ItemType Directory -Path ".\$currentDate\subscriptions_one_by_one"  | Out-Null
+    # setting the path
+    $subsPath = ".\$currentDate\subscriptions_one_by_one"
+} 
+Catch {
+    Write-Output "Failed to create the groups sub folder, please check your permissions"
+}
+
 # Export Role Assignments for all subscriptions the user has access to
 
     $RoleAssignments = @()
@@ -106,12 +128,12 @@ Catch {
               }
               if ($role.ObjectType -eq "Group" -and !(Test-Path -path "GroupMembers--$DisplayName.csv")) {
                 $Members = Get-AzureADGroupMember -ObjectId $ObjectId
-                $Members | Export-CSV "$outputPath\GroupMembers--$DisplayName.csv" -Delimiter ';'
+                $Members | Export-CSV "$groupsPath\GroupMembers--$DisplayName.csv" -Delimiter ';'
               }
             }
             #Export the Role Assignments to a CSV file labeled by the subscription name
             $csvSubName = $SubName.replace("/","---")
-            $Current | Export-CSV "$outputPath\Subscription--$csvSubName-Roles.csv" -Delimiter ';'
+            $Current | Export-CSV "$subsPath\Subscription--$csvSubName-Roles.csv" -Delimiter ';'
         }
     }
 
