@@ -107,13 +107,18 @@ Catch {
         $SubName = $sub.Name
         if ($sub.Name -ne "Access to Azure Active Directory") { # You can't assign roles in Access to Azure Active Directory subscriptions
             Set-AzureRmContext -SubscriptionId $sub.id
+            $tenantName = $sub.TenantId
+
+
+
+
             Write-Host "Collecting RBAC Definitions for $subname"
             Write-Host ""
             Try {
                 #############################################################################################################################
                 #### Modify this line to filter what you want in your results, currently only Owners or Admins will be expoted.
                 #############################################################################################################################
-                $Current = Get-AzureRmRoleAssignment -IncludeClassicAdministrators | Where-Object {$_.RoleDefinitionName -like "*AccountAdministrator*" -or $_.RoleDefinitionName -like "owner" -or $_.RoleDefinitionName -like "*ServiceAdministrator*"} | Select-Object -Property @{Name = 'SubscriptionName'; Expression = {$sub.name}}, @{Name = 'SubscriptionID'; Expression = {$sub.id}}, @{Name = 'SubscriptionStatus'; Expression = {$sub.state}}, @{Name = 'TenantID'; Expression = {$sub.TenantId}}, DisplayName, SignInName, RoleDefinitionName, RoleDefinitionId, ObjectId, ObjectType, CanDelegate
+                $Current = Get-AzureRmRoleAssignment -IncludeClassicAdministrators | Where-Object {$_.RoleDefinitionName -like "*AccountAdministrator*" -or $_.RoleDefinitionName -like "owner" -or $_.RoleDefinitionName -like "*ServiceAdministrator*"} | Select-Object -Property @{Name = 'SubscriptionName'; Expression = {$sub.name}}, @{Name = 'SubscriptionID'; Expression = {$sub.id}}, @{Name = 'SubscriptionStatus'; Expression = {$sub.state}}, @{Name = 'Tenant'; Expression = {$tenantName}}, DisplayName, SignInName, RoleDefinitionName, RoleDefinitionId, ObjectId, ObjectType, CanDelegate
                 $RoleAssignments += $Current
             } 
             Catch {
