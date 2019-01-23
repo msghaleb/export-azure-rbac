@@ -102,14 +102,9 @@ Catch {
     $RoleAssignments = @()
     $subs = Get-AzureRmSubscription
     $subs = $subs | sort-object TenantId
-    $tenant = Get-AzureADTenantDetail
     #Loop through each Azure subscription user has access to
     Foreach ($sub in $subs) {
         $SubName = $sub.Name
-        if ($tenant.ObjectId -ne $sub.TenantId) {
-            Connect-AzureAD -TenantId $sub.TenantId
-            $tenant = Get-AzureADTenantDetail
-        }
         if ($sub.Name -ne "Access to Azure Active Directory") { # You can't assign roles in Access to Azure Active Directory subscriptions
             Set-AzureRmContext -SubscriptionId $sub.id
             Write-Host "Collecting RBAC Definitions for $subname"
@@ -118,7 +113,7 @@ Catch {
                 #############################################################################################################################
                 #### Modify this line to filter what you want in your results, currently only Owners or Admins will be expoted.
                 #############################################################################################################################
-                $Current = Get-AzureRmRoleAssignment -IncludeClassicAdministrators | Where-Object {$_.RoleDefinitionName -like "*AccountAdministrator*" -or $_.RoleDefinitionName -like "owner" -or $_.RoleDefinitionName -like "*ServiceAdministrator*"} | Select-Object -Property @{Name = 'SubscriptionName'; Expression = {$sub.name}}, @{Name = 'SubscriptionID'; Expression = {$sub.id}}, @{Name = 'TenantID'; Expression = {$sub.TenantId}}, @{Name = 'TenantURL'; Expression = {$($tenant.VerifiedDomains | Where-Object Initial -eq $true).Name}}, @{Name = 'TenantVerifiedDomains'; Expression = {$($tenant.VerifiedDomains | Where-Object Initial -eq $true).Name}}, DisplayName, SignInName, RoleDefinitionName, RoleDefinitionId, ObjectId, ObjectType, CanDelegate
+                $Current = Get-AzureRmRoleAssignment -IncludeClassicAdministrators | Where-Object {$_.RoleDefinitionName -like "*AccountAdministrator*" -or $_.RoleDefinitionName -like "owner" -or $_.RoleDefinitionName -like "*ServiceAdministrator*"} | Select-Object -Property @{Name = 'SubscriptionName'; Expression = {$sub.name}}, @{Name = 'SubscriptionID'; Expression = {$sub.id}}, @{Name = 'SubscriptionStatus'; Expression = {$sub.state}}, @{Name = 'TenantID'; Expression = {$sub.TenantId}}, DisplayName, SignInName, RoleDefinitionName, RoleDefinitionId, ObjectId, ObjectType, CanDelegate
                 $RoleAssignments += $Current
             } 
             Catch {
